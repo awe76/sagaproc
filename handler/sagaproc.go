@@ -2,64 +2,40 @@ package handler
 
 import (
 	"context"
-	"io"
+	"encoding/json"
+	"fmt"
+	"math/rand"
 	"time"
-
-	log "go-micro.dev/v4/logger"
 
 	pb "github.com/awe76/sagaproc/proto"
 )
 
 type Sagaproc struct{}
 
-func (e *Sagaproc) Call(ctx context.Context, req *pb.CallRequest, rsp *pb.CallResponse) error {
-	log.Infof("Received Sagaproc.Call request: %v", req)
-	rsp.Msg = "Hello " + req.Name
+func (e *Sagaproc) HandleOperation(ctx context.Context, req *pb.OperationPayload, rsp *pb.OperationPayload) error {
+
+	if req.IsRollback {
+		fmt.Printf("%s operation rollback is started\n", req.Operation.Name)
+	} else {
+		fmt.Printf("%s operation is started\n", req.Operation.Name)
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	pause := rand.Intn(100)
+
+	// sleep for some random time
+	time.Sleep(time.Duration(pause) * time.Millisecond)
+
+	payload, err := json.Marshal(rand.Float32())
+	if err != nil {
+		return err
+	}
+
+	rsp.Id = req.Id
+	rsp.Operation = req.Operation
+	rsp.Payload = string(payload)
+	rsp.Name = req.Name
+	rsp.IsRollback = req.IsRollback
+
 	return nil
-}
-
-func (e *Sagaproc) ClientStream(ctx context.Context, stream pb.Sagaproc_ClientStreamStream) error {
-	var count int64
-	for {
-		req, err := stream.Recv()
-		if err == io.EOF {
-			log.Infof("Got %v pings total", count)
-			return stream.SendMsg(&pb.ClientStreamResponse{Count: count})
-		}
-		if err != nil {
-			return err
-		}
-		log.Infof("Got ping %v", req.Stroke)
-		count++
-	}
-}
-
-func (e *Sagaproc) ServerStream(ctx context.Context, req *pb.ServerStreamRequest, stream pb.Sagaproc_ServerStreamStream) error {
-	log.Infof("Received Sagaproc.ServerStream request: %v", req)
-	for i := 0; i < int(req.Count); i++ {
-		log.Infof("Sending %d", i)
-		if err := stream.Send(&pb.ServerStreamResponse{
-			Count: int64(i),
-		}); err != nil {
-			return err
-		}
-		time.Sleep(time.Millisecond * 250)
-	}
-	return nil
-}
-
-func (e *Sagaproc) BidiStream(ctx context.Context, stream pb.Sagaproc_BidiStreamStream) error {
-	for {
-		req, err := stream.Recv()
-		if err == io.EOF {
-			return nil
-		}
-		if err != nil {
-			return err
-		}
-		log.Infof("Got ping %v", req.Stroke)
-		if err := stream.Send(&pb.BidiStreamResponse{Stroke: req.Stroke}); err != nil {
-			return err
-		}
-	}
 }

@@ -36,10 +36,7 @@ func NewSagaprocEndpoints() []*api.Endpoint {
 // Client API for Sagaproc service
 
 type SagaprocService interface {
-	Call(ctx context.Context, in *CallRequest, opts ...client.CallOption) (*CallResponse, error)
-	ClientStream(ctx context.Context, opts ...client.CallOption) (Sagaproc_ClientStreamService, error)
-	ServerStream(ctx context.Context, in *ServerStreamRequest, opts ...client.CallOption) (Sagaproc_ServerStreamService, error)
-	BidiStream(ctx context.Context, opts ...client.CallOption) (Sagaproc_BidiStreamService, error)
+	HandleOperation(ctx context.Context, in *OperationPayload, opts ...client.CallOption) (*OperationPayload, error)
 }
 
 type sagaprocService struct {
@@ -54,9 +51,9 @@ func NewSagaprocService(name string, c client.Client) SagaprocService {
 	}
 }
 
-func (c *sagaprocService) Call(ctx context.Context, in *CallRequest, opts ...client.CallOption) (*CallResponse, error) {
-	req := c.c.NewRequest(c.name, "Sagaproc.Call", in)
-	out := new(CallResponse)
+func (c *sagaprocService) HandleOperation(ctx context.Context, in *OperationPayload, opts ...client.CallOption) (*OperationPayload, error) {
+	req := c.c.NewRequest(c.name, "Sagaproc.HandleOperation", in)
+	out := new(OperationPayload)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
@@ -64,177 +61,15 @@ func (c *sagaprocService) Call(ctx context.Context, in *CallRequest, opts ...cli
 	return out, nil
 }
 
-func (c *sagaprocService) ClientStream(ctx context.Context, opts ...client.CallOption) (Sagaproc_ClientStreamService, error) {
-	req := c.c.NewRequest(c.name, "Sagaproc.ClientStream", &ClientStreamRequest{})
-	stream, err := c.c.Stream(ctx, req, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &sagaprocServiceClientStream{stream}, nil
-}
-
-type Sagaproc_ClientStreamService interface {
-	Context() context.Context
-	SendMsg(interface{}) error
-	RecvMsg(interface{}) error
-	CloseSend() error
-	Close() error
-	Send(*ClientStreamRequest) error
-}
-
-type sagaprocServiceClientStream struct {
-	stream client.Stream
-}
-
-func (x *sagaprocServiceClientStream) CloseSend() error {
-	return x.stream.CloseSend()
-}
-
-func (x *sagaprocServiceClientStream) Close() error {
-	return x.stream.Close()
-}
-
-func (x *sagaprocServiceClientStream) Context() context.Context {
-	return x.stream.Context()
-}
-
-func (x *sagaprocServiceClientStream) SendMsg(m interface{}) error {
-	return x.stream.Send(m)
-}
-
-func (x *sagaprocServiceClientStream) RecvMsg(m interface{}) error {
-	return x.stream.Recv(m)
-}
-
-func (x *sagaprocServiceClientStream) Send(m *ClientStreamRequest) error {
-	return x.stream.Send(m)
-}
-
-func (c *sagaprocService) ServerStream(ctx context.Context, in *ServerStreamRequest, opts ...client.CallOption) (Sagaproc_ServerStreamService, error) {
-	req := c.c.NewRequest(c.name, "Sagaproc.ServerStream", &ServerStreamRequest{})
-	stream, err := c.c.Stream(ctx, req, opts...)
-	if err != nil {
-		return nil, err
-	}
-	if err := stream.Send(in); err != nil {
-		return nil, err
-	}
-	return &sagaprocServiceServerStream{stream}, nil
-}
-
-type Sagaproc_ServerStreamService interface {
-	Context() context.Context
-	SendMsg(interface{}) error
-	RecvMsg(interface{}) error
-	CloseSend() error
-	Close() error
-	Recv() (*ServerStreamResponse, error)
-}
-
-type sagaprocServiceServerStream struct {
-	stream client.Stream
-}
-
-func (x *sagaprocServiceServerStream) CloseSend() error {
-	return x.stream.CloseSend()
-}
-
-func (x *sagaprocServiceServerStream) Close() error {
-	return x.stream.Close()
-}
-
-func (x *sagaprocServiceServerStream) Context() context.Context {
-	return x.stream.Context()
-}
-
-func (x *sagaprocServiceServerStream) SendMsg(m interface{}) error {
-	return x.stream.Send(m)
-}
-
-func (x *sagaprocServiceServerStream) RecvMsg(m interface{}) error {
-	return x.stream.Recv(m)
-}
-
-func (x *sagaprocServiceServerStream) Recv() (*ServerStreamResponse, error) {
-	m := new(ServerStreamResponse)
-	err := x.stream.Recv(m)
-	if err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *sagaprocService) BidiStream(ctx context.Context, opts ...client.CallOption) (Sagaproc_BidiStreamService, error) {
-	req := c.c.NewRequest(c.name, "Sagaproc.BidiStream", &BidiStreamRequest{})
-	stream, err := c.c.Stream(ctx, req, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &sagaprocServiceBidiStream{stream}, nil
-}
-
-type Sagaproc_BidiStreamService interface {
-	Context() context.Context
-	SendMsg(interface{}) error
-	RecvMsg(interface{}) error
-	CloseSend() error
-	Close() error
-	Send(*BidiStreamRequest) error
-	Recv() (*BidiStreamResponse, error)
-}
-
-type sagaprocServiceBidiStream struct {
-	stream client.Stream
-}
-
-func (x *sagaprocServiceBidiStream) CloseSend() error {
-	return x.stream.CloseSend()
-}
-
-func (x *sagaprocServiceBidiStream) Close() error {
-	return x.stream.Close()
-}
-
-func (x *sagaprocServiceBidiStream) Context() context.Context {
-	return x.stream.Context()
-}
-
-func (x *sagaprocServiceBidiStream) SendMsg(m interface{}) error {
-	return x.stream.Send(m)
-}
-
-func (x *sagaprocServiceBidiStream) RecvMsg(m interface{}) error {
-	return x.stream.Recv(m)
-}
-
-func (x *sagaprocServiceBidiStream) Send(m *BidiStreamRequest) error {
-	return x.stream.Send(m)
-}
-
-func (x *sagaprocServiceBidiStream) Recv() (*BidiStreamResponse, error) {
-	m := new(BidiStreamResponse)
-	err := x.stream.Recv(m)
-	if err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // Server API for Sagaproc service
 
 type SagaprocHandler interface {
-	Call(context.Context, *CallRequest, *CallResponse) error
-	ClientStream(context.Context, Sagaproc_ClientStreamStream) error
-	ServerStream(context.Context, *ServerStreamRequest, Sagaproc_ServerStreamStream) error
-	BidiStream(context.Context, Sagaproc_BidiStreamStream) error
+	HandleOperation(context.Context, *OperationPayload, *OperationPayload) error
 }
 
 func RegisterSagaprocHandler(s server.Server, hdlr SagaprocHandler, opts ...server.HandlerOption) error {
 	type sagaproc interface {
-		Call(ctx context.Context, in *CallRequest, out *CallResponse) error
-		ClientStream(ctx context.Context, stream server.Stream) error
-		ServerStream(ctx context.Context, stream server.Stream) error
-		BidiStream(ctx context.Context, stream server.Stream) error
+		HandleOperation(ctx context.Context, in *OperationPayload, out *OperationPayload) error
 	}
 	type Sagaproc struct {
 		sagaproc
@@ -247,131 +82,6 @@ type sagaprocHandler struct {
 	SagaprocHandler
 }
 
-func (h *sagaprocHandler) Call(ctx context.Context, in *CallRequest, out *CallResponse) error {
-	return h.SagaprocHandler.Call(ctx, in, out)
-}
-
-func (h *sagaprocHandler) ClientStream(ctx context.Context, stream server.Stream) error {
-	return h.SagaprocHandler.ClientStream(ctx, &sagaprocClientStreamStream{stream})
-}
-
-type Sagaproc_ClientStreamStream interface {
-	Context() context.Context
-	SendMsg(interface{}) error
-	RecvMsg(interface{}) error
-	Close() error
-	Recv() (*ClientStreamRequest, error)
-}
-
-type sagaprocClientStreamStream struct {
-	stream server.Stream
-}
-
-func (x *sagaprocClientStreamStream) Close() error {
-	return x.stream.Close()
-}
-
-func (x *sagaprocClientStreamStream) Context() context.Context {
-	return x.stream.Context()
-}
-
-func (x *sagaprocClientStreamStream) SendMsg(m interface{}) error {
-	return x.stream.Send(m)
-}
-
-func (x *sagaprocClientStreamStream) RecvMsg(m interface{}) error {
-	return x.stream.Recv(m)
-}
-
-func (x *sagaprocClientStreamStream) Recv() (*ClientStreamRequest, error) {
-	m := new(ClientStreamRequest)
-	if err := x.stream.Recv(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (h *sagaprocHandler) ServerStream(ctx context.Context, stream server.Stream) error {
-	m := new(ServerStreamRequest)
-	if err := stream.Recv(m); err != nil {
-		return err
-	}
-	return h.SagaprocHandler.ServerStream(ctx, m, &sagaprocServerStreamStream{stream})
-}
-
-type Sagaproc_ServerStreamStream interface {
-	Context() context.Context
-	SendMsg(interface{}) error
-	RecvMsg(interface{}) error
-	Close() error
-	Send(*ServerStreamResponse) error
-}
-
-type sagaprocServerStreamStream struct {
-	stream server.Stream
-}
-
-func (x *sagaprocServerStreamStream) Close() error {
-	return x.stream.Close()
-}
-
-func (x *sagaprocServerStreamStream) Context() context.Context {
-	return x.stream.Context()
-}
-
-func (x *sagaprocServerStreamStream) SendMsg(m interface{}) error {
-	return x.stream.Send(m)
-}
-
-func (x *sagaprocServerStreamStream) RecvMsg(m interface{}) error {
-	return x.stream.Recv(m)
-}
-
-func (x *sagaprocServerStreamStream) Send(m *ServerStreamResponse) error {
-	return x.stream.Send(m)
-}
-
-func (h *sagaprocHandler) BidiStream(ctx context.Context, stream server.Stream) error {
-	return h.SagaprocHandler.BidiStream(ctx, &sagaprocBidiStreamStream{stream})
-}
-
-type Sagaproc_BidiStreamStream interface {
-	Context() context.Context
-	SendMsg(interface{}) error
-	RecvMsg(interface{}) error
-	Close() error
-	Send(*BidiStreamResponse) error
-	Recv() (*BidiStreamRequest, error)
-}
-
-type sagaprocBidiStreamStream struct {
-	stream server.Stream
-}
-
-func (x *sagaprocBidiStreamStream) Close() error {
-	return x.stream.Close()
-}
-
-func (x *sagaprocBidiStreamStream) Context() context.Context {
-	return x.stream.Context()
-}
-
-func (x *sagaprocBidiStreamStream) SendMsg(m interface{}) error {
-	return x.stream.Send(m)
-}
-
-func (x *sagaprocBidiStreamStream) RecvMsg(m interface{}) error {
-	return x.stream.Recv(m)
-}
-
-func (x *sagaprocBidiStreamStream) Send(m *BidiStreamResponse) error {
-	return x.stream.Send(m)
-}
-
-func (x *sagaprocBidiStreamStream) Recv() (*BidiStreamRequest, error) {
-	m := new(BidiStreamRequest)
-	if err := x.stream.Recv(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+func (h *sagaprocHandler) HandleOperation(ctx context.Context, in *OperationPayload, out *OperationPayload) error {
+	return h.SagaprocHandler.HandleOperation(ctx, in, out)
 }
