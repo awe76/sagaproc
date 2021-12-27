@@ -31,7 +31,7 @@ func (e *Sagaproc) HandleOperation(ctx context.Context, req *pb.OperationPayload
 		return err
 	}
 
-	rsp.IsRollback = req.IsRollback || rand.Float32() > 0.8
+	rsp.IsFailed = !req.IsRollback && rand.Float32() > 0.8
 	rsp.Payload = string(payload)
 
 	return nil
