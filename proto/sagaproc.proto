@@ -5,7 +5,7 @@ package sagaproc;
 option go_package = "./proto;sagaproc";
 
 service Sagaproc {
-	rpc HandleOperation(OperationPayload) returns (OperationPayload) {}
+	rpc HandleOperation(OperationPayload) returns (OperationResult) {}
 }
 
 message Operation {
@@ -20,4 +20,9 @@ message OperationPayload {
 	string name = 3;
 	Operation operation = 4;
 	string payload = 5;
+}
+
+message OperationResult {
+	string payload = 1;
+	bool is_rollback = 2;
 }

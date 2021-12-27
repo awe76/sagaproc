@@ -12,7 +12,7 @@ import (
 
 type Sagaproc struct{}
 
-func (e *Sagaproc) HandleOperation(ctx context.Context, req *pb.OperationPayload, rsp *pb.OperationPayload) error {
+func (e *Sagaproc) HandleOperation(ctx context.Context, req *pb.OperationPayload, rsp *pb.OperationResult) error {
 
 	if req.IsRollback {
 		fmt.Printf("%s operation rollback is started\n", req.Operation.Name)
@@ -31,11 +31,8 @@ func (e *Sagaproc) HandleOperation(ctx context.Context, req *pb.OperationPayload
 		return err
 	}
 
-	rsp.Id = req.Id
-	rsp.Operation = req.Operation
+	rsp.IsRollback = req.IsRollback || rand.Float32() > 0.8
 	rsp.Payload = string(payload)
-	rsp.Name = req.Name
-	rsp.IsRollback = req.IsRollback
 
 	return nil
 }

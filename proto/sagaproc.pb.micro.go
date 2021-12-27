@@ -36,7 +36,7 @@ func NewSagaprocEndpoints() []*api.Endpoint {
 // Client API for Sagaproc service
 
 type SagaprocService interface {
-	HandleOperation(ctx context.Context, in *OperationPayload, opts ...client.CallOption) (*OperationPayload, error)
+	HandleOperation(ctx context.Context, in *OperationPayload, opts ...client.CallOption) (*OperationResult, error)
 }
 
 type sagaprocService struct {
@@ -51,9 +51,9 @@ func NewSagaprocService(name string, c client.Client) SagaprocService {
 	}
 }
 
-func (c *sagaprocService) HandleOperation(ctx context.Context, in *OperationPayload, opts ...client.CallOption) (*OperationPayload, error) {
+func (c *sagaprocService) HandleOperation(ctx context.Context, in *OperationPayload, opts ...client.CallOption) (*OperationResult, error) {
 	req := c.c.NewRequest(c.name, "Sagaproc.HandleOperation", in)
-	out := new(OperationPayload)
+	out := new(OperationResult)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
@@ -64,12 +64,12 @@ func (c *sagaprocService) HandleOperation(ctx context.Context, in *OperationPayl
 // Server API for Sagaproc service
 
 type SagaprocHandler interface {
-	HandleOperation(context.Context, *OperationPayload, *OperationPayload) error
+	HandleOperation(context.Context, *OperationPayload, *OperationResult) error
 }
 
 func RegisterSagaprocHandler(s server.Server, hdlr SagaprocHandler, opts ...server.HandlerOption) error {
 	type sagaproc interface {
-		HandleOperation(ctx context.Context, in *OperationPayload, out *OperationPayload) error
+		HandleOperation(ctx context.Context, in *OperationPayload, out *OperationResult) error
 	}
 	type Sagaproc struct {
 		sagaproc
@@ -82,6 +82,6 @@ type sagaprocHandler struct {
 	SagaprocHandler
 }
 
-func (h *sagaprocHandler) HandleOperation(ctx context.Context, in *OperationPayload, out *OperationPayload) error {
+func (h *sagaprocHandler) HandleOperation(ctx context.Context, in *OperationPayload, out *OperationResult) error {
 	return h.SagaprocHandler.HandleOperation(ctx, in, out)
 }
